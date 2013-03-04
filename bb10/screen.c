@@ -18,6 +18,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include "plugin_lib.h"
 #include "../plugins/gpulib/gpu.h"
@@ -63,17 +64,40 @@ tco_context_t tco_ctx;
 
 volatile bool shutdown_emu;
 
-#define APAD_X 0
-#define APAD_Y 320
-#define APAD_W 300
-#define APAD_H 300
+#define APAD_X 50
+#define APAD_Y 370
+#define APAD_W 200
+#define APAD_H 200
 #define APAD_CENTRE_X APAD_X+(APAD_W/2)
 #define APAD_CENTRE_Y APAD_Y+(APAD_H/2)
 #define APAD_MAX 255
 static int finger = -1;
 int process_analog_pad(screen_event_t screen_event);
 int process_keyboard_event(screen_event_t screen_event);
+int process_gamepad_event(screen_event_t screen_event);
 
+void loadController() {
+	// Query libscreen for information about this device.
+	screen_get_device_property_iv(cfg_bb10.controllers[0].handle, SCREEN_PROPERTY_TYPE, &cfg_bb10.controllers[0].type);
+	screen_get_device_property_cv(cfg_bb10.controllers[0].handle, SCREEN_PROPERTY_ID_STRING, sizeof(cfg_bb10.controllers[0].id), cfg_bb10.controllers[0].id);
+
+	// Check for the existence of analog sticks.
+	if (!screen_get_device_property_iv(cfg_bb10.controllers[0].handle, SCREEN_PROPERTY_ANALOG0, cfg_bb10.controllers[0].analog0)) {
+		++cfg_bb10.controllers[0].analogCount;
+	}
+
+	if (!screen_get_device_property_iv(cfg_bb10.controllers[0].handle, SCREEN_PROPERTY_ANALOG1, cfg_bb10.controllers[0].analog0)) {
+		++cfg_bb10.controllers[0].analogCount;
+	}
+
+	if (cfg_bb10.controllers[0].type == SCREEN_EVENT_GAMEPAD) {
+		printf("Gamepad device ID: %s", cfg_bb10.controllers[0].id);
+	} else {
+		printf("Joystick device: %s", cfg_bb10.controllers[0].id);
+	}
+}
+
+//TODO: Handle multiplayer, need to distinguish between controllers if 2 using device.
 static void
 handle_screen_event(bps_event_t *event)
 {
@@ -106,6 +130,51 @@ handle_screen_event(bps_event_t *event)
 			process_keyboard_event(screen_event);
 		}
 		break;
+	case SCREEN_EVENT_GAMEPAD:
+	case SCREEN_EVENT_JOYSTICK:
+		if(cfg_bb10.controllers[0].device == 3){
+			process_gamepad_event(screen_event);
+		}
+		break;
+	case SCREEN_EVENT_DEVICE:
+	{
+	    // A device was attached or removed.
+	    screen_device_t device;
+	    int attached;
+	    int type;
+
+	    screen_get_event_property_pv(screen_event,
+			SCREEN_PROPERTY_DEVICE, (void**)&device);
+		screen_get_event_property_iv(screen_event,
+			SCREEN_PROPERTY_ATTACHED, &attached);
+
+		if (attached) {
+			screen_get_device_property_iv(device,
+				SCREEN_PROPERTY_TYPE, &type);
+		}
+
+		int i;
+		if (attached && (type == SCREEN_EVENT_GAMEPAD ||
+			type == SCREEN_EVENT_JOYSTICK)) {
+
+			if (!cfg_bb10.controllers[0].handle) {
+				cfg_bb10.controllers[0].handle = device;
+				loadController();
+				break;
+			}
+		} else {
+			if (device == cfg_bb10.controllers[0].handle) {
+				cfg_bb10.controllers[0].handle = 0;
+				cfg_bb10.controllers[0].type = 0;
+				cfg_bb10.controllers[0].analogCount = 0;
+				cfg_bb10.controllers[0].analog0[0] = cfg_bb10.controllers[0].analog0[1] = cfg_bb10.controllers[0].analog0[2] = 0;
+				cfg_bb10.controllers[0].analog1[0] = cfg_bb10.controllers[0].analog1[1] = cfg_bb10.controllers[0].analog1[2] = 0;
+				break;
+			}
+		}
+
+		break;
+	}
     }
 }
 
@@ -215,6 +284,51 @@ int process_keyboard_event(screen_event_t screen_event)
 		}
 
 	}
+
+	return 0;
+}
+
+int process_gamepad_event(screen_event_t screen_event)
+{
+	int buttons;
+	int b;
+
+	 screen_get_event_property_iv(screen_event, SCREEN_PROPERTY_BUTTONS, &buttons);
+
+	if (cfg_bb10.controllers[0].analogCount > 0) {
+		screen_get_event_property_iv(screen_event, SCREEN_PROPERTY_ANALOG0, cfg_bb10.controllers[0].analog0);
+
+		//Controller is -128 to 127 with (0,0) center, but PS is 0 to 255 with (127,127)
+		if(cfg_bb10.controllers[0].analog0[0] == 0) {
+			in_a1[0] = 127;
+		} else {
+			in_a1[0] = cfg_bb10.controllers[0].analog0[0]+128;
+		}
+
+		if(cfg_bb10.controllers[0].analog0[1] == 0) {
+			in_a1[1] = 127;
+		} else {
+			in_a1[1] = cfg_bb10.controllers[0].analog0[1]+128;
+		}
+	}
+
+	if (cfg_bb10.controllers[0].analogCount == 2) {
+		screen_get_event_property_iv(screen_event, SCREEN_PROPERTY_ANALOG1, cfg_bb10.controllers[0].analog1);
+	}
+
+	//Single player only so far
+	for( b = 0; b < 16; b++ )
+	{
+		//store the bitmask in buttons for the mapped button
+		if(cfg_bb10.controllers[0].gamepad[b] & buttons){
+			in_keystate |= 1 << b;
+		} else {
+			in_keystate &= ~(1<<b);
+		}
+
+	}
+
+	return 0;
 }
 
 int handleKeyFunc(int sym, int mod, int scancode, uint16_t unicode, int event){
@@ -351,8 +465,8 @@ handle_navigator_event(bps_event_t *event) {
 
     switch (bps_event_get_code(event)) {
     case NAVIGATOR_SWIPE_DOWN:
-        fprintf(stderr,"Swipe down event");
-        emu_set_action(SACTION_ENTER_MENU);
+        //fprintf(stderr,"Swipe down event");
+        //emu_set_action(SACTION_ENTER_MENU);
         break;
     case NAVIGATOR_EXIT:
         fprintf(stderr,"Exit event");
@@ -383,26 +497,21 @@ handle_navigator_event(bps_event_t *event) {
     			} else if (bps_event_get_code(event_pause) == NAVIGATOR_EXIT){
     				fprintf(stderr,"Exit event");
 					shutdown_emu = true;
-					emu_set_action(SACTION_ENTER_MENU);
+					//emu_set_action(SACTION_ENTER_MENU);
 					break;
     			}
     		}
     		break;
     	case NAVIGATOR_WINDOW_FULLSCREEN:
-			in_keystate &= ~(1<<DKEY_START);
+			//in_keystate &= ~(1<<DKEY_START);
     		break;
     	case NAVIGATOR_WINDOW_INVISIBLE:
     		break;
-    	case NAVIGATOR_ORIENTATION_CHECK:
-			//Signal navigator that we intend to resize
-			navigator_orientation_check_response(event, false);
-			break;
     	}
     	break;
     default:
         break;
     }
-    fprintf(stderr,"\n");
 }
 
 static void
@@ -427,6 +536,8 @@ handle_event()
 			}
 		}
     }
+
+    //emu_set_action(SACTION_NONE);
 }
 
 void

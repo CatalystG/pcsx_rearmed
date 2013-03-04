@@ -1,13 +1,22 @@
 #ifndef __PCSX_REARMED_BB10_H__
 #define __PCSX_REARMED_BB10_H__
 
+#include <screen/screen.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct {
 	int device;
+	int type;
+	char id[64];
+	screen_device_t handle;
 	int buttons[16];
+	int gamepad[16];
+	int analogCount;
+	int analog0[3];
+	int analog1[3];
 } Controller;
 
 typedef struct {
