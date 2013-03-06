@@ -34,11 +34,18 @@ typedef struct {
 	Controller *controllers;
 } SettingsBB10;
 
+//For the frontend to emulator interface
 enum {
 	FRONTEND_MAP_BUTTON,
-	FRONTEND_START_EMULATOR,
+	FRONTEND_PLAY,
 	FRONTEND_EXIT,
-	FRONTEND_DISC_SWAP
+	FRONTEND_RESUME
+};
+
+//Menu actions for the emulator
+enum {
+	MENU_ENTER_MENU = 1,
+	MENU_DISC_SWAP
 };
 
 int bb10_main(void* screen_ctx, const char * group, const char* win_id);

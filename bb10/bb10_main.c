@@ -333,38 +333,38 @@ void do_emu_action_custom(enum sched_action emu_action){
 		//Wait on a msg when we hit play
 		if(cfg_bb10.controllers[0].device == 1)
 			hideTouchControls();
+
 		while(1){
 			rcvid = MsgReceive(cfg_bb10.chid, &msg, sizeof(msg), 0);
 
 			if(rcvid <= 0){
 				MsgReply(rcvid, 0, NULL, 0);
 				return;
-			} else if (msg == 1) {
-				MsgReply(rcvid, 0, NULL, 0);
-				break;
-			} else if (msg == 2) {
-				MsgReply(rcvid, 0, NULL, 0);
-				bb10_pcsx_stop_emulator();
-				return;
 			}
 
 			MsgReply(rcvid, 0, NULL, 0);
+
+			printf("Msg: %d, emu_custom_code: %d\n", msg, emu_custom_code);fflush(stdout);
+
+			if ((msg == FRONTEND_PLAY) || (msg == FRONTEND_RESUME)) {
+				break;
+			} else if (msg == FRONTEND_EXIT){
+				bb10_pcsx_stop_emulator();
+				return;
+			}
 		}
 
 		update_settings();
-		if(cfg_bb10.controllers[0].device == 1)
+		if(cfg_bb10.controllers[0].device == 1) {
 			hideTouchControls();
+		}
 
-		switch(emu_custom_code) {
-		case 1:
-
+		if((emu_custom_code == MENU_ENTER_MENU) && (msg == FRONTEND_PLAY)) {
 			new_dynarec_clear_full();
-
 			run_cd_image(cdfile);
-			break;
-		case 2:
+		} else if ((emu_custom_code == MENU_DISC_SWAP) || (msg == FRONTEND_RESUME)) {
 			printf("Swapping dics...\n");fflush(stdout);
-			//Swap discs
+
 			CdromId[0] = '\0';
 			CdromLabel[0] = '\0';
 
@@ -378,10 +378,8 @@ void do_emu_action_custom(enum sched_action emu_action){
 
 			SetCdOpenCaseTime(time(NULL) + 2);
 			LidInterrupt();
-			break;
-		default:
-			break;
 		}
+
 		break;
 	default:
 		break;
