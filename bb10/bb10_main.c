@@ -149,7 +149,8 @@ static void update_settings(){
 	soft_filter = cfg_bb10.soft_filter;
 	pl_rearmed_cbs.frameskip = cfg_bb10.frameskip;//= AUTO:-1, OFF:0 ON:1
 	//BIOS, find bios with picker
-	sprintf(Config.Bios, "%s", cfg_bb10.bios_name);
+	sprintf(Config.Bios, "%s", cfg_bb10.bios);
+	sprintf(Config.BiosDir, "%s", cfg_bb10.biosDir);
 	//AUDIO
 	Config.Xa = cfg_bb10.audio_xa;
 	Config.Cdda = cfg_bb10.audio_cdda;
@@ -165,6 +166,7 @@ static void update_settings(){
 	printf("Cdda: %d\n", Config.Cdda);
 	printf("Analog Pad: %d\n", analog_enabled);
 	printf("Controller 1st button: %d\n", cfg_bb10.controllers[0].buttons[0]);
+	printf("Bios: %s%s\n", Config.BiosDir, Config.Bios);
 
 	if(analog_enabled) {
 		in_type1 = PSE_PAD_TYPE_ANALOGPAD;
@@ -183,7 +185,7 @@ EXPORT int bb10_main(void* screen_ctx, const char * group, const char* win_id)
 	MAKE_PATH(Config.Mcd1, MEMCARD_DIR_BB10, "card1.mcd");
 	MAKE_PATH(Config.Mcd2, MEMCARD_DIR_BB10, "card2.mcd");
 
-	strcpy(Config.BiosDir, BIOS_DIR_BB10);
+	//strcpy(Config.BiosDir, BIOS_DIR_BB10);
 	strcpy(Config.PluginsDir, PLUGINS_DIR_BB10);
 	snprintf(Config.PatchesDir, sizeof(Config.PatchesDir), PATCHES_DIR_BB10);
 	Config.PsxAuto = 1;
@@ -267,7 +269,7 @@ EXPORT int bb10_main(void* screen_ctx, const char * group, const char* win_id)
 	ClosePlugins();
 	SysClose();
 	qnx_cleanup();
-	free(cdfile);
+	//free(cdfile);
 
 	return 0;
 }
@@ -330,10 +332,12 @@ void do_emu_action_custom(enum sched_action emu_action){
 
 	switch(emu_action){
 	case SACTION_ENTER_MENU:
-		//Wait on a msg when we hit play
-		if(cfg_bb10.controllers[0].device == 1)
-			hideTouchControls();
 
+		if(cfg_bb10.controllers[0].device == 1) {
+			hideTouchControls();
+		}
+
+		//Wait on a msg when we hit play
 		while(1){
 			rcvid = MsgReceive(cfg_bb10.chid, &msg, sizeof(msg), 0);
 
@@ -343,8 +347,6 @@ void do_emu_action_custom(enum sched_action emu_action){
 			}
 
 			MsgReply(rcvid, 0, NULL, 0);
-
-			printf("Msg: %d, emu_custom_code: %d\n", msg, emu_custom_code);fflush(stdout);
 
 			if ((msg == FRONTEND_PLAY) || (msg == FRONTEND_RESUME)) {
 				break;

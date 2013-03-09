@@ -25,7 +25,8 @@ typedef struct {
 	int soft_filter;
 	int frameskip; //= -1, 1, 0
 
-	char *bios_name; //Default SCPH1001.BIN
+	char *bios; //Default SCPH1001.BIN
+	char *biosDir;
 
 	int audio_xa;
 	int audio_cdda;

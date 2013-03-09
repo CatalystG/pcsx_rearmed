@@ -33,6 +33,8 @@
 #include "libpicofe/readpng.h"
 #include "qnx_common.h"
 
+#include "pcsx-rearmed-bb10.h"
+
 #define X_RES           1024
 #define Y_RES           600
 #define D_WIDTH			800
@@ -470,7 +472,7 @@ handle_navigator_event(bps_event_t *event) {
         break;
     case NAVIGATOR_EXIT:
         fprintf(stderr,"Exit event");
-		shutdown_emu = true;
+        bb10_pcsx_stop_emulator();
         /* Clean up */
 		/*
 		screen_stop_events(screen_ctx);
@@ -495,8 +497,8 @@ handle_navigator_event(bps_event_t *event) {
     					break;
     				}
     			} else if (bps_event_get_code(event_pause) == NAVIGATOR_EXIT){
-    				fprintf(stderr,"Exit event");
-					shutdown_emu = true;
+    				fprintf(stderr,"Exit event\n");
+    				bb10_pcsx_stop_emulator();
 					//emu_set_action(SACTION_ENTER_MENU);
 					break;
     			}
@@ -805,6 +807,6 @@ void qnx_cleanup(){
 	screen_stop_events(screen_ctx);
 	bps_shutdown();
 	tco_shutdown(tco_ctx);
-	//screen_destroy_window(screen_win);
+	screen_destroy_window(screen_win);
 	screen_destroy_context(screen_ctx);
 }
