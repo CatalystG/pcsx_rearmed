@@ -24,6 +24,9 @@ void SetupSound(void)
 #ifdef HAVE_ALSA
 		REGISTER_DRIVER(alsa);
 #endif
+#ifdef HAVE_QNX
+		REGISTER_DRIVER(qnx);
+#endif
 #ifdef HAVE_SDL
 		REGISTER_DRIVER(sdl);
 #endif

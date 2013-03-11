@@ -203,7 +203,7 @@ void CALLBACK GPU__clearDynarec(void (CALLBACK *callback)(void)) {}
 void CALLBACK GPU__vBlank(int val) {}
 
 #define LoadGpuSym1(dest, name) \
-	LoadSym(GPU_##dest, GPU##dest, name, TRUE);
+	LoadSym(GPU_##dest, GPU##dest, name, FALSE);
 
 #define LoadGpuSym0(dest, name) \
 	LoadSym(GPU_##dest, GPU##dest, name, FALSE); \
@@ -269,7 +269,7 @@ void CALLBACK CDR__about(void) {}
 long CALLBACK CDR__setfilename(char*filename) { return 0; }
 
 #define LoadCdrSym1(dest, name) \
-	LoadSym(CDR_##dest, CDR##dest, name, TRUE);
+	LoadSym(CDR_##dest, CDR##dest, name, FALSE);
 
 #define LoadCdrSym0(dest, name) \
 	LoadSym(CDR_##dest, CDR##dest, name, FALSE); \

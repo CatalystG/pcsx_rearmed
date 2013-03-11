@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
   u32 fbdev_handle = open("/dev/fb1", O_RDWR);
   vram_ptr = (mmap((void *)0x50000000, 1024 * 1024 * 2, PROT_READ | PROT_WRITE,
    MAP_SHARED | 0xA0000000, fbdev_handle, 0));
-#elif 1
+#elif 0
   #ifndef MAP_HUGETLB
   #define MAP_HUGETLB 0x40000 /* arch specific */
   #endif

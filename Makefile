@@ -1,9 +1,9 @@
 # Makefile for PCSX ReARMed
 
 # default stuff goes here, so that config can override
-TARGET = pcsx
-CFLAGS += -Wall -ggdb -Iinclude -ffast-math
-LDLIBS += -lpthread
+TARGET = libpcsx.so
+CFLAGS += -Wall -ggdb -Iinclude -Ifrontend -ffast-math -fPIC
+LDLIBS += 
 ifndef DEBUG
 CFLAGS += -O2 -DNDEBUG
 endif
@@ -25,7 +25,7 @@ config.mak:
 endif
 -include Makefile.local
 
-CC_LINK = $(CC)
+CC_LINK = $(CC) -shared
 LDFLAGS += $(MAIN_LDFLAGS)
 LDLIBS += $(MAIN_LDLIBS)
 ifdef PCNT
@@ -83,6 +83,11 @@ endif
 ifneq ($(findstring alsa,$(SOUND_DRIVERS)),)
 plugins/dfsound/out.o: CFLAGS += -DHAVE_ALSA
 OBJS += plugins/dfsound/alsa.o
+LDLIBS += -lasound
+endif
+ifneq ($(findstring qnx,$(SOUND_DRIVERS)),)
+plugins/dfsound/out.o: CFLAGS += -DHAVE_QNX
+OBJS += plugins/dfsound/qnx.o
 LDLIBS += -lasound
 endif
 ifneq ($(findstring sdl,$(SOUND_DRIVERS)),)
@@ -179,6 +184,11 @@ CFLAGS += $(shell pkg-config --cflags hildon-1) -DHAVE_TSLIB
 CFLAGS += `pkg-config --cflags glib-2.0 libosso dbus-1 hildon-fm-2`
 LDFLAGS += `pkg-config --libs glib-2.0 libosso dbus-1 hildon-fm-2`
 endif
+ifeq "$(PLATFORM)" "bb10"
+OBJS += bb10/screen.o bb10/bb10_main.o
+bb10/%.o: bb10/%.c
+USE_PLUGIN_LIB = 1
+endif
 ifeq "$(PLATFORM)" "libretro"
 OBJS += frontend/libretro.o
 CFLAGS += -DFRONTEND_SUPPORTS_RGB565
@@ -222,19 +232,19 @@ frontend/libpicofe/%.c:
 libpcsxcore/gte_nf.o: libpcsxcore/gte.c
 	$(CC) -c -o $@ $^ $(CFLAGS) -DFLAGLESS
 
-frontend/revision.h: FORCE
-	@(git describe || echo) | sed -e 's/.*/#define REV "\0"/' > $@_
-	@diff -q $@_ $@ > /dev/null 2>&1 || cp $@_ $@
-	@rm $@_
-
 %.o: %.S
 	$(CC) $(CFLAGS) -c $^ -o $@
+	
+%.o: %.s
+	$(CC) -fPIC -mcpu=cortex-a8 -mfpu=neon -c $^ -o $@
 
 
 target_: $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(CC_LINK) -o $@ $^ $(LDFLAGS) $(LDLIBS) -Wl,-Map=$@.map
+	$(CC) -A libpcsx.a $^ $(LDFLAGS)
+	
 
 clean: $(PLAT_CLEAN) clean_plugins
 	$(RM) $(TARGET) $(OBJS) $(TARGET).map frontend/revision.h
@@ -253,6 +263,9 @@ else
 plugins_:
 clean_plugins:
 endif
+
+frontend/revision.h: FORCE
+	echo ...
 
 .PHONY: all clean target_ plugins_ clean_plugins FORCE
 

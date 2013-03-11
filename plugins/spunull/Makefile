@@ -8,7 +8,7 @@ all: ../../config.mak $(TARGET)
 
 $(TARGET): spunull.c
 	$(CC) $(CFLAGS) -shared -fPIC -ggdb -O2 -o $@ $^
-	ln -fs $(PLUGINDIR)/$(TARGET) ../
+	cp $(PLUGINDIR)/$(TARGET) ../
 
 clean:
 	$(RM) $(TARGET)

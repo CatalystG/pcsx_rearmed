@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<emulation version="1">
+    <dpad x="0" y="320" width="300" height="300" image="app/native/dpad.png">
+        <label x="0" y="0" width="300" height="300" image="app/native/dpad.png"/>
+    </dpad>
+    <key x="10" y="670" width="100" height="100" sym="0" image="app/native/select.png">
+        <label x="0" y="0" width="100" height="100" image="app/native/select.png"/>
+    </key>
+    <key x="1170" y="680" width="100" height="100" sym="3" image="app/native/start.png">
+        <label x="0" y="0" width="100" height="100" image="app/native/start.png"/>
+    </key>
+    <key x="0" y="160" width="150" height="75" sym="8" image="app/native/rl.png">
+        <label x="0" y="0"  width="150" height="75" image="app/native/rl.png"/>
+    </key>
+    <key x="1130" y="230" width="150" height="75" sym="11" image="app/native/rl.png">
+        <label x="0" y="0" width="150" height="75" image="app/native/rl.png"/>
+    </key>
+    <key x="1130" y="160" width="150" height="75" sym="9" image="app/native/rl.png">
+        <label x="0" y="0" width="150" height="75" image="app/native/rl.png"/>
+    </key>
+    <key x="0" y="230" width="150" height="75" sym="10" image="app/native/rl.png">
+        <label x="0" y="0" width="150" height="75" image="app/native/rl.png"/>
+    </key>
+    <key x="1090" y="340" width="100" height="100" sym="12" image="app/native/triangle.png">
+        <label x="0" y="0" width="100" height="100" image="app/native/triangle.png" /> 
+    </key>
+    <key x="1090" y="520" width="100" height="100" sym="14" image="app/native/cross.png">
+        <label x="0" y="0" width="100" height="100" image="app/native/cross.png" /> 
+    </key>
+    <key x="1000" y="430" width="100" height="100" sym="15" image="app/native/square.png">
+        <label x="0" y="0" width="100" height="100" image="app/native/square.png" /> 
+    </key>
+    <key x="1180" y="430" width="100" height="100" sym="13" image="app/native/circle.png">
+        <label x="0" y="0" width="100" height="100" image="app/native/circle.png" /> 
+    </key>
+</emulation>

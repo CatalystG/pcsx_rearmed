@@ -127,10 +127,10 @@ int psxMemInit() {
 	memset(psxMemRLUT, 0, 0x10000 * sizeof(void *));
 	memset(psxMemWLUT, 0, 0x10000 * sizeof(void *));
 
-	psxM = psxMap(0x80000000, 0x00210000, 1, MAP_TAG_RAM);
+	//psxM = psxMap(0x80000000, 0x00210000, 1, MAP_TAG_RAM);
 #ifndef RAM_FIXED
 	if (psxM == NULL)
-		psxM = psxMap(0x78000000, 0x00210000, 0, MAP_TAG_RAM);
+		psxM = psxMap(0x70000000, 0x00210000, 0, MAP_TAG_RAM);
 #endif
 	if (psxM == NULL) {
 		SysMessage(_("mapping main RAM failed"));

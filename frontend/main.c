@@ -25,7 +25,7 @@
 #include "../libpcsxcore/cheat.h"
 #include "../libpcsxcore/new_dynarec/new_dynarec.h"
 #include "../plugins/cdrcimg/cdrcimg.h"
-#include "revision.h"
+//#include "revision.h"
 
 #ifndef NO_FRONTEND
 #include "libpicofe/input.h"
@@ -68,7 +68,7 @@ static void make_path(char *buf, size_t size, const char *dir, const char *fname
 #define MAKE_PATH(buf, dir, fname) \
 	make_path(buf, sizeof(buf), dir, fname)
 
-static int get_gameid_filename(char *buf, int size, const char *fmt, int i) {
+int get_gameid_filename(char *buf, int size, const char *fmt, int i) {
 	char trimlabel[33];
 	int j;
 
@@ -159,6 +159,8 @@ void emu_set_default_config(void)
 void do_emu_action(void)
 {
 	int ret;
+
+	printf("Do Emu Action\n");fflush(stdout);
 
 	emu_action_old = emu_action;
 
@@ -265,10 +267,16 @@ do_state_slot:
 				SysMessage("GPU_open returned %d", ret);
 		}
 		return;
-#endif
 	default:
+			return;
+	}
+#else
+	default:
+		do_emu_action_custom(emu_action);
 		return;
 	}
+#endif
+
 
 	hud_new_msg = 3;
 }
@@ -416,7 +424,7 @@ int emu_core_preinit(void)
 
 int emu_core_init(void)
 {
-	SysPrintf("Starting PCSX-ReARMed " REV "\n");
+	//SysPrintf("Starting PCSX-ReARMed " REV "\n");
 
 #ifndef NO_FRONTEND
 	check_profile();
@@ -680,6 +688,11 @@ static void toggle_fast_forward(int force_off)
 		snprintf(hud_msg, sizeof(hud_msg), "FAST FORWARD %s",
 			fast_forward ? "ON" : "OFF");
 }
+
+int get_state_filename(char *buf, int size, int i) {
+	return get_gameid_filename(buf, size,
+		"." STATES_DIR "%.32s-%.9s.%3.3d", i);
+}
 #endif
 
 void SysRunGui() {
@@ -723,11 +736,6 @@ void SysClose() {
 }
 
 void SysUpdate() {
-}
-
-int get_state_filename(char *buf, int size, int i) {
-	return get_gameid_filename(buf, size,
-		"." STATES_DIR "%.32s-%.9s.%3.3d", i);
 }
 
 int emu_check_state(int slot)

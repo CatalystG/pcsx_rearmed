@@ -60,10 +60,10 @@ extern char *invc_ptr;
 #define TARGET_SIZE_2 24 // 2^24 = 16 megabytes
 
 // Code generator target address
-#if BASE_ADDR_FIXED
+//#if BASE_ADDR_FIXED
 // "round" address helpful for debug
-#define BASE_ADDR 0x1000000
-#else
+//#define BASE_ADDR 0x1000000
+//#else
 extern char translation_cache[1 << TARGET_SIZE_2];
 #define BASE_ADDR (u_int)translation_cache
-#endif
+//#endif

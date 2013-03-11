@@ -44,7 +44,8 @@ void *tsdev;
 void *pl_vout_buf;
 int g_layer_x, g_layer_y, g_layer_w, g_layer_h;
 static int pl_vout_w, pl_vout_h, pl_vout_bpp; /* output display/layer */
-static int pl_vout_scale, pl_vout_yoffset;
+static int pl_vout_yoffset;
+int pl_vout_scale;
 static int psx_w, psx_h, psx_bpp;
 static int vsync_cnt;
 static int is_pal, frame_interval, frame_interval1024;

@@ -33,7 +33,7 @@ obj/%.o: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $^
 
 obj/%.o: %.s
-	$(AS) $(ASFLAGS) -o $@ $^
+	$(CC) $(ASFLAGS) -o $@ $^
 
 clean:
 	$(RM) $(TARGET) $(OBJS2)
